@@ -85,7 +85,17 @@
     animation: mm-dialog-in .4s ease both;
 }
 /* 想要桌面端居中小窗，可把上面 inset/width/height 删掉，改用下面这组（可修改）：
-#mm-panel .mm-dialog { left:50%; top:50%; transform:translate(-50%,-50%); width:94vw; height:90vh; max-width:720px; border-radius:4px; box-shadow:0 12px 40px rgba(0,0,0,.35); } */
+#mm-panel .mm-dialog {
+    position: absolute;
+    inset: 0;
+    width: 100%; height: 100%;
+    background-color: var(--mm-bg);
+    background-size: cover;
+    background-position: center;
+    overflow: hidden;
+    display: flex; flex-direction: column;
+    animation: mm-dialog-in .4s ease both;
+}
 @keyframes mm-dialog-in { from { opacity: 0; } to { opacity: 1; } }
 
 /* 背景纹理上叠一层米白，压低饱和、统一暖调 */
