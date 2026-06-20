@@ -35,7 +35,13 @@ import {
 // ===================================================================
 import * as DB from './js/storage.js';
 
-
+// 临时调试：加载 eruda 控制台（验证完删掉这段）
+(function(){
+    const s = document.createElement('script');
+    s.src = 'https://cdn.jsdelivr.net/npm/eruda';
+    s.onload = () => { try { eruda.init(); } catch(e){} };
+    document.head.appendChild(s);
+})();
 
 const PLUGIN = 'memory-museum';
 
