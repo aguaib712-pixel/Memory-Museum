@@ -1,0 +1,480 @@
+/* ╔══════════════════════════════════════════════════════════════╗
+   ║  回忆博物馆 Memory Museum — style.css                          ║
+   ║  色彩 / 字体 / 尺寸都收在 :root 变量里，改这里即可全局生效        ║
+   ╚══════════════════════════════════════════════════════════════╝ */
+
+#mm-panel, #mm-cd, .mm-overlay {
+    /* ===== 可修改：配色 ===== */
+    --mm-bg:        #F5F0E8;  /* 暖灰米白背景 */
+    --mm-ink:       #3D3229;  /* 主文字 深褐 */
+    --mm-ink-soft:  #6B5D4F;  /* 次要文字 */
+    --mm-accent:    #8B4D3B;  /* 强调色 酒红 */
+    --mm-line:      #D8CDBF;  /* 细分隔线 */
+    --mm-danger:    #A8473A;  /* 危险操作 */
+
+    /* ===== 可修改：字体 ===== */
+    --mm-serif:  'Noto Serif SC', 'Source Han Serif SC', 'Songti SC', serif; /* 标题衬线 */
+    --mm-sans:   -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;  /* 正文 */
+
+    /* 由 JS 注入：--mm-cd-size / --mm-tab-icon */
+    --mm-cd-size: 64px;
+    --mm-tab-icon: 30px;
+}
+
+/* ============================ CD 悬浮球 ============================ */
+#mm-cd {
+    position: fixed;
+    right: 18px; bottom: 90px;     /* 可修改：初始位置 */
+    width: var(--mm-cd-size);
+    height: var(--mm-cd-size);
+    z-index: 9998;
+    cursor: pointer;
+    touch-action: none;
+    user-select: none;
+    filter: drop-shadow(0 2px 6px rgba(0,0,0,.25));
+}
+#mm-cd .mm-cd-disc {
+    position: absolute; inset: 0;
+    border-radius: 50%;
+    background-size: cover;
+    background-position: center;
+}
+#mm-cd.mm-spinning .mm-cd-disc {
+    animation: mm-spin 4s linear infinite;  /* 可修改：旋转一圈 4 秒 */
+}
+@keyframes mm-spin { to { transform: rotate(360deg); } }
+#mm-cd .mm-cd-arm {
+    position: absolute;
+    top: -14%; right: -10%;                 /* 盖在右上侧 */
+    width: 62%;                              /* 可修改：机臂大小（相对悬浮球） */
+    transform: rotate(45deg);               /* 往右倾斜 45°，固定不转 */
+    transform-origin: 70% 30%;
+    pointer-events: none;
+}
+
+/* ============================ 面板外壳 ============================ */
+#mm-panel {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100vw; height: 100vh; height: 100dvh;  /* 视口单位：不受父级高度塌缩影响 */
+    z-index: 99999;                                /* 抬高层级，盖过美化主题 */
+    display: none;
+    background: rgba(30, 24, 18, .42);      /* 半透明遮罩 */
+    backdrop-filter: blur(2px);
+    font-family: var(--mm-sans);
+    color: var(--mm-ink);
+}
+#mm-panel.mm-open { display: block; }
+
+#mm-panel .mm-dialog {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;              /* 铺满 #mm-panel（已是视口大小）*/
+    background-color: var(--mm-bg);
+    background-size: cover;
+    background-position: center;
+    overflow: hidden;
+    display: flex; flex-direction: column;
+    animation: mm-dialog-in .4s ease both;
+}
+@keyframes mm-dialog-in { from { opacity: 0; } to { opacity: 1; } }
+
+/* 背景纹理上叠一层米白，压低饱和、统一暖调 */
+#mm-panel .mm-bg-overlay {
+    position: absolute; inset: 0;
+    background: var(--mm-bg);
+    opacity: .82;                           /* 可修改：纹理可见度（越大背景图越淡） */
+    pointer-events: none;
+}
+#mm-panel .mm-dialog > *:not(.mm-bg-overlay) { position: relative; z-index: 1; }
+
+/* ============================ 顶栏 Album 播放器 ============================ */
+#mm-panel .mm-player {
+    display: flex; align-items: center; gap: 10px;
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--mm-line);
+    flex: 0 0 auto;
+}
+#mm-panel .mm-player-disc {
+    width: 22px; height: 22px; border-radius: 50%;
+    background: radial-gradient(circle at center, var(--mm-bg) 0 18%, var(--mm-accent) 19% 30%, var(--mm-ink) 31%);
+    flex: 0 0 auto;
+}
+#mm-panel .mm-player.mm-playing .mm-player-disc { animation: mm-spin 4s linear infinite; }
+#mm-panel .mm-player-name {
+    flex: 1 1 auto;
+    font-family: var(--mm-serif);
+    font-size: 15px;
+    color: var(--mm-ink);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    letter-spacing: .5px;
+}
+#mm-panel .mm-player-ctrl { display: flex; gap: 4px; }
+
+#mm-panel .mm-icon-btn {
+    width: 34px; height: 34px;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--mm-ink-soft);
+    cursor: pointer; border-radius: 50%;
+    transition: color .2s, background .2s;
+}
+#mm-panel .mm-icon-btn:hover { color: var(--mm-accent); background: rgba(139,77,59,.08); }
+#mm-panel .mm-player-play { color: var(--mm-accent); }
+
+/* ============================ 舞台 ============================ */
+#mm-panel .mm-stage {
+    flex: 1 1 auto;
+    position: relative;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+/* ============================ 首页：散落标题 + 装饰照片 ============================ */
+#mm-panel .mm-home { position: relative; width: 100%; min-height: 100%; }
+
+#mm-panel .mm-title-card {
+    position: absolute;
+    transform: translate(-50%, -50%);   /* 仅居中；旋转/缩放放 inner，呼吸放 text */
+    opacity: var(--mm-op, 1);
+    cursor: pointer;
+    transition: opacity .3s, filter .3s;
+}
+#mm-panel .mm-title-inner { display: inline-block; }
+#mm-panel .mm-title-text {
+    display: inline-block;
+    font-family: var(--mm-serif);
+    font-size: 19px;                        /* 可修改：标题基准字号（再乘各自随机 scale） */
+    color: var(--mm-ink);
+    line-height: 1.4;
+    letter-spacing: 1px;                    /* 手写信纸感 */
+    text-shadow: 0 1px 0 rgba(255,255,255,.4);
+    white-space: nowrap;
+    animation: mm-breathe 12s ease-in-out infinite;  /* 常态呼吸飘动 */
+}
+#mm-panel .mm-title-card:hover .mm-title-text { color: var(--mm-accent); }
+@keyframes mm-breathe {
+    0%, 100% { transform: translateY(0); }
+    50%      { transform: translateY(-4px); }   /* 可修改：呼吸幅度 */
+}
+
+#mm-panel .mm-decor-layer { position: absolute; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+#mm-panel .mm-decor {
+    position: absolute;
+    /* 低饱和拼贴感：灰度 + 棕调 + 1px 描边 */
+    filter: grayscale(.55) sepia(.35) contrast(.95);
+    border: 1px solid rgba(61,50,41,.35);
+    opacity: var(--mm-op, .3);
+    transform: rotate(var(--mm-rot, 0deg));
+    box-shadow: 0 1px 4px rgba(0,0,0,.15);
+}
+#mm-panel .mm-empty-home, #mm-panel .mm-empty {
+    position: absolute; top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 80%; text-align: center;
+    color: var(--mm-ink-soft);
+    font-family: var(--mm-serif);
+    line-height: 1.8;
+}
+#mm-panel .mm-empty { position: static; transform: none; width: auto; padding: 30px 16px; }
+#mm-panel .mm-empty.mm-small { padding: 12px; font-size: 13px; }
+
+/* ===== 入场动画（简化版，稳定优先）===== */
+#mm-panel .mm-stage.mm-entrance .mm-decor,
+#mm-panel .mm-stage.mm-entrance .mm-title-card {
+    opacity: 0;
+    filter: blur(6px);
+    transition: opacity 1.1s ease, filter 1.1s ease, transform 1.1s ease;
+    transition-delay: var(--mm-delay, 0s);
+}
+#mm-panel .mm-stage.mm-entrance .mm-title-text { animation: none; } /* 入场时先不呼吸 */
+#mm-panel .mm-stage.mm-entrance .mm-decor { transform: translate(8px, 14px) rotate(var(--mm-rot,0deg)); }
+#mm-panel .mm-stage.mm-entrance .mm-decor.mm-in {
+    opacity: var(--mm-op, .3); filter: grayscale(.55) sepia(.35); transform: rotate(var(--mm-rot,0deg));
+}
+#mm-panel .mm-stage.mm-entrance .mm-title-card.mm-in {
+    opacity: var(--mm-op, 1); filter: blur(0);
+}
+
+/* ============================ 收藏集内部 ============================ */
+#mm-panel .mm-collection { display: flex; height: 100%; }
+
+#mm-panel .mm-tabbar {
+    flex: 0 0 auto;
+    width: 52px;                            /* 可修改：tab 栏宽度 */
+    display: flex; flex-direction: column; align-items: center;
+    gap: 14px; padding: 12px 0;
+    border-right: 1px solid var(--mm-line);
+}
+#mm-panel .mm-tab {
+    width: calc(var(--mm-tab-icon) + 8px);
+    height: calc(var(--mm-tab-icon) + 8px);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; border-radius: 8px;
+    opacity: .5; transition: opacity .25s, background .25s;
+}
+#mm-panel .mm-tab img {
+    width: var(--mm-tab-icon); height: var(--mm-tab-icon);
+    object-fit: contain;
+    filter: grayscale(.3);
+}
+#mm-panel .mm-tab.active { opacity: 1; background: rgba(139,77,59,.1); }
+#mm-panel .mm-tab:hover { opacity: .85; }
+
+#mm-panel .mm-content { flex: 1 1 auto; overflow-y: auto; padding: 14px 16px; }
+#mm-panel .mm-col-title {
+    font-family: var(--mm-serif);
+    font-size: 20px; color: var(--mm-accent);
+    letter-spacing: 1px; margin-bottom: 10px;
+}
+
+#mm-panel .mm-back { color: var(--mm-ink-soft); }
+
+/* 板块工具条 */
+#mm-panel .mm-toolbar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 6px 0 10px;
+    border-bottom: 1px solid var(--mm-line);
+    margin-bottom: 10px;
+}
+#mm-panel .mm-tool-left { font-family: var(--mm-serif); font-size: 15px; }
+#mm-panel .mm-count {
+    display: inline-block; margin-left: 6px;
+    font-family: var(--mm-sans); font-size: 12px; color: var(--mm-ink-soft);
+}
+#mm-panel .mm-tool-right { display: flex; gap: 6px; }
+#mm-panel .mm-tool-btn {
+    padding: 5px 9px; border-radius: 6px;
+    color: var(--mm-ink-soft); cursor: pointer;
+    border: 1px solid var(--mm-line);
+    font-size: 13px; background: rgba(255,255,255,.25);
+    transition: all .2s;
+}
+#mm-panel .mm-tool-btn:hover { color: var(--mm-accent); border-color: var(--mm-accent); }
+#mm-panel .mm-tool-btn.active { color: #fff; background: var(--mm-accent); border-color: var(--mm-accent); }
+#mm-panel .mm-tool-btn.danger { color: var(--mm-danger); border-color: var(--mm-danger); }
+
+/* 批量条 */
+#mm-panel .mm-batch-bar {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 10px; padding: 6px 4px;
+    background: rgba(139,77,59,.06); border-radius: 6px;
+}
+#mm-panel .mm-batch-all { display: flex; align-items: center; gap: 6px; font-size: 13px; cursor: pointer; }
+
+/* 条目卡片 */
+#mm-panel .mm-entry-list { display: flex; flex-direction: column; gap: 12px; padding-bottom: 16px; }
+#mm-panel .mm-entry-card {
+    padding: 12px 14px;
+    background: rgba(255,255,255,.35);
+    border-radius: 4px;
+    border-left: 2px solid var(--mm-line);  /* 不靠重边框，仅一条细线 */
+    animation: mm-fade-in .4s ease both;
+}
+@keyframes mm-fade-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+#mm-panel .mm-entry-card.story { border-left-color: var(--mm-accent); }
+
+#mm-panel .mm-entry-head { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 6px; }
+#mm-panel .mm-entry-check { margin-top: 3px; }
+#mm-panel .mm-entry-meta { flex: 1 1 auto; display: flex; align-items: baseline; flex-wrap: wrap; gap: 8px; }
+#mm-panel .mm-entry-title { font-family: var(--mm-serif); font-size: 15px; color: var(--mm-ink); }
+#mm-panel .mm-entry-date { font-size: 11px; color: var(--mm-ink-soft); }
+#mm-panel .mm-entry-music { color: var(--mm-accent); font-size: 12px; }
+#mm-panel .mm-entry-actions { display: flex; gap: 10px; flex: 0 0 auto; }
+#mm-panel .mm-entry-actions i { color: var(--mm-ink-soft); cursor: pointer; font-size: 13px; transition: color .2s; }
+#mm-panel .mm-entry-actions .mm-act-edit:hover { color: var(--mm-accent); }
+#mm-panel .mm-entry-actions .mm-act-del:hover { color: var(--mm-danger); }
+
+#mm-panel .mm-entry-body {
+    font-size: 14px; line-height: 1.7; color: var(--mm-ink);
+    cursor: pointer;
+    /* 文字底部渐隐遮罩：长文模糊收束（记忆浮现感） */
+    max-height: 180px; overflow: hidden;
+    -webkit-mask-image: linear-gradient(to bottom, #000 70%, transparent 100%);
+    mask-image: linear-gradient(to bottom, #000 70%, transparent 100%);
+}
+#mm-panel .mm-entry-card.story .mm-entry-body { max-height: 220px; }
+#mm-panel .mm-entry-body img { max-width: 100%; }
+
+#mm-panel .mm-entry-imgs { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+#mm-panel .mm-thumb {
+    width: 64px; height: 64px; object-fit: cover; border-radius: 3px;
+    border: 1px solid var(--mm-line);
+    filter: grayscale(.4) sepia(.3);
+    cursor: pointer;
+}
+
+/* ============================ Album ============================ */
+#mm-panel .mm-album { padding: 14px 16px; }
+#mm-panel .mm-album-head { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+#mm-panel .mm-album-title { flex: 1 1 auto; font-family: var(--mm-serif); font-size: 20px; color: var(--mm-accent); letter-spacing: 2px; }
+
+#mm-panel .mm-music-row {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 8px; border-bottom: 1px solid var(--mm-line);
+}
+#mm-panel .mm-music-row.current { background: rgba(139,77,59,.06); }
+#mm-panel .mm-music-play { flex: 0 0 auto; color: var(--mm-accent); }
+#mm-panel .mm-music-info { flex: 1 1 auto; min-width: 0; }
+#mm-panel .mm-music-name { font-family: var(--mm-serif); font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#mm-panel .mm-music-sub { font-size: 11px; color: var(--mm-ink-soft); }
+#mm-panel .mm-default-tag { font-size: 10px; color: #fff; background: var(--mm-accent); padding: 1px 5px; border-radius: 3px; margin-left: 4px; }
+#mm-panel .mm-music-acts { display: flex; gap: 12px; flex: 0 0 auto; }
+#mm-panel .mm-music-acts i { color: var(--mm-ink-soft); cursor: pointer; font-size: 13px; transition: color .2s; }
+#mm-panel .mm-music-default:hover { color: var(--mm-accent); }
+#mm-panel .mm-music-del:hover { color: var(--mm-danger); }
+#mm-panel .mm-music-assoc:hover { color: var(--mm-accent); }
+
+#mm-panel .mm-music-assoc-panel { padding: 6px 0 6px 20px; }
+#mm-panel .mm-assoc-group { margin-bottom: 8px; }
+#mm-panel .mm-assoc-col { font-family: var(--mm-serif); font-size: 13px; color: var(--mm-accent); cursor: pointer; padding: 3px 0; }
+#mm-panel .mm-assoc-item { font-size: 12px; color: var(--mm-ink-soft); cursor: pointer; padding: 3px 0 3px 14px; }
+#mm-panel .mm-assoc-item:hover { color: var(--mm-accent); }
+#mm-panel .mm-assoc-sec { color: var(--mm-accent); margin-right: 4px; }
+
+/* ============================ 底部胶片条（模拟胶卷）============================ */
+#mm-panel .mm-filmstrip {
+    flex: 0 0 auto;
+    background: #2a241e;                    /* 胶片深色底 */
+    position: relative;
+    padding: 4px 0;
+}
+/* 上下两排齿孔，用重复渐变模拟 */
+#mm-panel .mm-film-perf {
+    height: 7px;
+    background-image: repeating-linear-gradient(to right,
+        transparent 0 6px, var(--mm-bg) 6px 12px, transparent 12px 18px);
+    opacity: .85;
+}
+#mm-panel .mm-film-cells { display: flex; justify-content: space-around; padding: 6px 8px; }
+#mm-panel .mm-film-cell {
+    display: flex; flex-direction: column; align-items: center; gap: 3px;
+    color: #e8dccb; cursor: pointer; font-size: 11px;
+    padding: 4px 14px;
+    border-left: 1px dashed rgba(232,220,203,.25);
+    border-right: 1px dashed rgba(232,220,203,.25);
+    transition: color .2s;
+}
+#mm-panel .mm-film-cell:hover { color: #fff; }
+#mm-panel .mm-film-cell i { font-size: 15px; }
+
+/* ============================ 弹窗（表单 / 选择 / 详情 / 大图）============================ */
+/* 弹层挂在 body 上、独立全屏，确保面板关着时（例如聊天里点 ♡）也能正常显示 */
+.mm-overlay {
+    position: fixed; inset: 0; z-index: 10001;
+    background: rgba(30,24,18,.5);
+    display: flex; align-items: center; justify-content: center;
+    animation: mm-fade-in .25s ease;
+    font-family: var(--mm-sans); color: var(--mm-ink);
+}
+/* 弹层内通用小控件（自带样式，不依赖面板作用域） */
+.mm-overlay .mm-icon-btn {
+    width: 34px; height: 34px; display: flex; align-items: center; justify-content: center;
+    color: var(--mm-ink-soft); cursor: pointer; border-radius: 50%; transition: color .2s, background .2s;
+}
+.mm-overlay .mm-icon-btn:hover { color: var(--mm-accent); background: rgba(139,77,59,.08); }
+.mm-overlay .mm-tool-btn {
+    padding: 5px 9px; border-radius: 6px; color: var(--mm-ink-soft); cursor: pointer;
+    border: 1px solid var(--mm-line); font-size: 13px; background: rgba(255,255,255,.25);
+    transition: all .2s; display: inline-flex; align-items: center; gap: 6px;
+}
+.mm-overlay .mm-tool-btn:hover { color: var(--mm-accent); border-color: var(--mm-accent); }
+.mm-overlay .mm-thumb {
+    width: 64px; height: 64px; object-fit: cover; border-radius: 3px;
+    border: 1px solid var(--mm-line); filter: grayscale(.4) sepia(.3); cursor: pointer;
+}
+.mm-overlay .mm-empty { padding: 20px 12px; text-align: center; color: var(--mm-ink-soft); font-family: var(--mm-serif); line-height: 1.8; }
+.mm-overlay .mm-empty.mm-small { padding: 12px; font-size: 13px; }
+
+.mm-form, .mm-pick, .mm-detail {
+    width: 88%; max-width: 460px; max-height: 84%;
+    background: var(--mm-bg);
+    border-radius: 6px; overflow: hidden;
+    display: flex; flex-direction: column;
+    box-shadow: 0 8px 30px rgba(0,0,0,.4);
+}
+.mm-form-head, .mm-detail-head {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 14px; border-bottom: 1px solid var(--mm-line);
+}
+.mm-form-title, .mm-detail-title { font-family: var(--mm-serif); font-size: 16px; color: var(--mm-accent); }
+.mm-form-body { padding: 14px; overflow-y: auto; }
+.mm-form-row { margin-bottom: 12px; }
+.mm-form-label { font-size: 12px; color: var(--mm-ink-soft); margin: 10px 0 5px; }
+.mm-input {
+    width: 100%; box-sizing: border-box;
+    padding: 9px 10px; font-size: 14px;
+    background: rgba(255,255,255,.6);
+    border: 1px solid var(--mm-line); border-radius: 4px;
+    color: var(--mm-ink); font-family: var(--mm-sans);
+}
+.mm-input:focus { outline: none; border-color: var(--mm-accent); }
+.mm-textarea { min-height: 120px; resize: vertical; line-height: 1.6; }
+
+.mm-form-extra { border-top: 1px dashed var(--mm-line); margin-top: 8px; padding-top: 4px; }
+.mm-form-imgs { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; }
+.mm-form-img { position: relative; }
+.mm-form-img img { width: 60px; height: 60px; object-fit: cover; border-radius: 3px; border: 1px solid var(--mm-line); }
+.mm-form-img-del {
+    position: absolute; top: -6px; right: -6px;
+    width: 18px; height: 18px; line-height: 16px; text-align: center;
+    background: var(--mm-danger); color: #fff; border-radius: 50%;
+    cursor: pointer; font-size: 13px;
+}
+.mm-form-addimg, .mm-form-music { display: inline-flex; align-items: center; gap: 6px; }
+
+.mm-form-foot { display: flex; justify-content: flex-end; gap: 10px; padding: 12px 14px; border-top: 1px solid var(--mm-line); }
+.mm-btn {
+    padding: 8px 18px; border-radius: 4px; cursor: pointer;
+    border: 1px solid var(--mm-line); background: transparent;
+    color: var(--mm-ink); font-family: var(--mm-sans); font-size: 14px;
+}
+.mm-btn-ok { background: var(--mm-accent); color: #fff; border-color: var(--mm-accent); }
+
+/* 列表选择 */
+.mm-pick-head { padding: 14px; font-family: var(--mm-serif); font-size: 16px; color: var(--mm-accent); border-bottom: 1px solid var(--mm-line); }
+.mm-pick-list { padding: 8px; overflow-y: auto; }
+.mm-pick-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 12px; border-radius: 4px; cursor: pointer; font-size: 14px;
+    transition: background .2s;
+}
+.mm-pick-item:hover { background: rgba(139,77,59,.08); }
+.mm-pick-item.danger { color: var(--mm-danger); }
+.mm-pick-item i { width: 18px; text-align: center; color: var(--mm-ink-soft); }
+
+/* 条目详情 */
+.mm-detail-scroll { padding: 16px; overflow-y: auto; }
+.mm-detail-date { font-size: 11px; color: var(--mm-ink-soft); margin-bottom: 10px; }
+.mm-detail-body { font-size: 15px; line-height: 1.85; color: var(--mm-ink); }
+.mm-detail-body img { max-width: 100%; }
+.mm-detail-imgs { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+.mm-detail-imgs .mm-thumb { width: 90px; height: 90px; }
+
+/* 大图 */
+.mm-lightbox { background: rgba(0,0,0,.85); }
+.mm-lightbox img { max-width: 92%; max-height: 88%; object-fit: contain; }
+.mm-lightbox-close { position: absolute; top: 14px; right: 14px; color: #fff; }
+
+/* ============================ 聊天界面 ♡ 一键收藏 ============================ */
+.mm-fav-toggle { cursor: pointer; }
+.mm-fav-toggle .mm-heart {
+    font-size: 16px;
+    color: #b58e7a;                         /* 可修改：未收藏的爱心颜色 */
+    transition: color .2s, transform .15s;
+    line-height: 1;
+}
+.mm-fav-toggle:hover .mm-heart { transform: scale(1.15); }
+.mm-fav-toggle.mm-faved .mm-heart { color: #8B4D3B; } /* 已收藏 实心酒红 */
+
+/* ============================ 滚动条（移动端友好的细滚动条）============================ */
+#mm-panel ::-webkit-scrollbar { width: 5px; height: 5px; }
+#mm-panel ::-webkit-scrollbar-thumb { background: var(--mm-line); border-radius: 3px; }
+#mm-panel ::-webkit-scrollbar-track { background: transparent; }
+
+/* ============================ 减弱动效（无障碍）============================ */
+@media (prefers-reduced-motion: reduce) {
+    #mm-cd.mm-spinning .mm-cd-disc,
+    #mm-panel .mm-player.mm-playing .mm-player-disc,
+    #mm-panel .mm-home .mm-title-card { animation: none !important; }
+    #mm-panel .mm-dialog { animation: none; }
+}
