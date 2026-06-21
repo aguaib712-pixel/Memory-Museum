@@ -35,15 +35,24 @@ import {
 // ===================================================================
 import * as DB from './js/storage.js';
 
-// 临时调试：加载 eruda 控制台（验证完删掉这段）
-(function(){
+// 加强版 Eruda 调试（加载完酒馆后再 init）
+setTimeout(() => {
     const s = document.createElement('script');
     s.src = 'https://cdn.jsdelivr.net/npm/eruda';
-    s.onload = () => { try { eruda.init(); } catch(e){} };
+    s.onload = () => {
+        try {
+            eruda.init({
+                container: document.body,
+                tool: ['console', 'elements', 'network']
+            });
+            eruda.show('console');   // 直接打开 console
+            console.log('%c[Memory-Museum] Eruda 已强制启动 ✅', 'color:#8B4D3B;font-size:14px');
+        } catch(e) {
+            console.error('[Memory-Museum] Eruda 启动失败', e);
+        }
+    };
     document.head.appendChild(s);
-})();
-
-const PLUGIN = 'memory-museum';
+}, 1500);   // 延迟1.5秒，等酒馆加载完
 
 // ===================================================================
 //  ★★★ 配置区 CONFIG ★★★  （素材 URL / 尺寸 / 数量，随意改）
